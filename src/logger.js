@@ -4,8 +4,21 @@
  * logging methods if a log server is ever implemented.
  */
 
-const { LOG_LEVEL, LOG_FORMAT } = require("./config.js").getConfig();
+const { Logging } = require("@google-cloud/logging");
 const util = require("util");
+const { GOOGLE_PROJECT_ID, GOOGLE_LOG_NAME } = require("./config.js").getConfig();
+let log;
+
+if (process.env.PULSAR_STATUS === "dev") {
+   const logging = new Logging();
+   log = logging.logSync(GOOGLE_LOG_NAME);
+   // This sets the logs to fallback to stdout
+} else {
+  const logging = new Logging({ GOOGLE_PROJECT_ID });
+  log = logging.log(GOOGLE_LOG_NAME);
+}
+
+const { LOG_LEVEL, LOG_FORMAT } = require("./config.js").getConfig();
 
 /**
  * @function httpLog
@@ -27,6 +40,59 @@ function httpLog(req, res) {
   );
 }
 
+
+function parseExpressForLog(req, res) {
+  let date = new Date();
+  let duration = Date.now() - req.start;
+  return {
+    requestMethod: req.method,
+    requestUrl: req.url,
+    status: res.statusCode,
+    //responseSize: ,
+    //userAgent: ,
+    remoteIp: req.ip,
+    //serverIp: ,
+    //referer: ,
+    latency: duration,
+    //cacheLookup: ,
+    //cacheHit: ,
+    //cacheValidateWithOriginServer: ,
+    //cacheFillBytes: ,
+    protocol: req.protocol,
+  };
+}
+
+/**
+  * @function heavyLog
+  * @desc The new logger for traceability, and usability.
+  * This logger will log to the cloud if determined to be prod in the setup, otherwise will
+  * write the logs to stdout.
+  * Using `heavyLog` will need to be done on endpoints that now integrate with the new traceability vision.
+  * That is heavyLog is called at the end of an HTTP endpoint from supported portions of code.
+  * @param {array} arr - The Array of Server Status Objects Collected over an endpoints lifetime.
+  * @param {object} req - The ExpressJS inherited Request Object for the full request.
+  * @param {object} res - The ExpressJS inherited Response Object for the full transaction.
+  */
+function heavyLog(arr, req, res) {
+  // We are potentially being handed lots of data all at once, including
+  // multiple server status objects, and any nested logs attached.
+  let logEntries = [];
+
+  for (let i = 0; i < arr.length; i++) {
+    let tmpData = arr[log];
+    tmpData.spanId = req.trace;
+    logEntries.push(tmpData, arr[short]);
+  }
+  // Then lets add our HTTP Return to the end.
+  let httpObj = {
+    httpRequest: parseExpressForLog(req, res),
+    spanId: req.trace,
+  };
+  logEntries.push(httpObj, "Returned Request");
+
+  log.write(logEntries);
+}
+
 /**
  * @function sanitizeLogs
  * @desc This function intends to assist in sanitizing values from users that
@@ -36,6 +102,7 @@ function httpLog(req, res) {
  * @param {string} val - The user provided value to sanitize.
  * @returns {string} A sanitized log from the provided value.
  * @see {@link https://cwe.mitre.org/data/definitions/117.html}
+ * @depreciated Use `logger.agnostic()` instead
  */
 function sanitizeLogs(val) {
   // Removes New Line, Carriage Return, Tabs,
@@ -210,4 +277,5 @@ module.exports = {
   httpLog,
   sanitizeLogs,
   generic,
+  heavyLog,
 };

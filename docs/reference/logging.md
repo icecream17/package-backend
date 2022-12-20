@@ -105,3 +105,19 @@ if (!obj.ok) {
 ---
 
 * `http`: The `meta.type` `http` can be used to show HTTP details along with your log. This isn't intended to handle purely logging HTTP Data, but instead when another type of log would benefit from displaying HTTP information.
+
+---
+
+While still in development there is a new plan for logging and traceability within the backend.
+
+Prioritizing the cloud environment it will be deployed to.
+
+That is using `heavyLog`.
+
+The idea is with modified Server Status Objects on each location that uses them will append a `log` key to the object, that can contain ready to go log objects.
+
+Then when the endpoint has finished all tasks and provides a return to the user it will now go to log.
+
+Providing `heavyLog` first the array of Server Status Objects that it has collected during it's lifetime. The `heavyLog` function will then extract all logs from the array of Server Status Objects, transmutation them into a usable log for our Cloud Logging Agent, importantly adding on the `trace` of the request, to allow a unique link between all logs and server status objects creating during the lifetime of the request. Which this can allow every log created for any transaction to be easily linked back to the endpoint that spawned it.
+
+Additionally, the final log will take the request and response objects, rendering them useful to the logging agent, then batch all logs to our logging agent. Lowering our costs during log transport.

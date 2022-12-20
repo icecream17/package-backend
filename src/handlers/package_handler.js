@@ -685,7 +685,11 @@ async function postPackagesVersion(req, res) {
   }
 
   res.status(201).json(addVer.content);
-  logger.httpLog(req, res);
+  logger.heavyLog(
+    [user, packExists, gitowner, addVer],
+    req, res
+  );
+  //logger.httpLog(req, res);
 }
 
 /**

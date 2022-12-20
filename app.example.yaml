@@ -50,3 +50,7 @@ env_variables:
   LOG_FORMAT: "stdout"
   # This is the secret code used for our StateStore until we have a better solution.
   STATE_STORE_CODE: "123"
+  # The Google Project ID of the backend
+  GOOGLE_PROJECT_ID: ""
+  # The Google Log Name to write cloud logs to
+  GOOGLE_LOG_NAME: ""

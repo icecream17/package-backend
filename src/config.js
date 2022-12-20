@@ -87,6 +87,8 @@ function getConfig() {
     LOG_FORMAT: process.env.LOG_FORMAT ?? data.env_variables.LOG_FORMAT,
     STATE_STORE_CODE:
       process.env.STATE_STORE_CODE ?? data.env_variables.STATE_STORE_CODE,
+    GOOGLE_PROJECT_ID: process.env.GOOGLE_PROJECT_ID ?? data.env_variables.GOOGLE_PROJECT_ID,
+    GOOGLE_LOG_NAME: process.env.GOOGLE_LOG_NAME ?? data.env_variables.GOOGLE_LOG_NAME,
   };
 }
 

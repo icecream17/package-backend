@@ -17,6 +17,7 @@ const oauth_handler = require("./handlers/oauth_handler.js");
 const server_version = require("../package.json").version;
 const rateLimit = require("express-rate-limit");
 const { MemoryStore } = require("express-rate-limit");
+const { v4: uuidv4 } = require("uuid");
 
 // Define our Basic Rate Limiters
 const genericLimit = rateLimit({
@@ -52,6 +53,8 @@ app.set("trust proxy", true);
 app.use((req, res, next) => {
   // This adds a start to the request, logging the exact time a request was received.
   req.start = Date.now();
+  // We will also append a random number to our Trace to aid in post-action debugging.
+  req.trace = uuidv4();
   next();
 });
 
